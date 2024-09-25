@@ -20,9 +20,9 @@ You must have the following in place to complete the solution in this post.
 
 1. An [AWS account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fportal.aws.amazon.com%2Fbilling%2Fsignup%2Fresume&client_id=signup)
 2. Enable foundation model [access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) in Amazon Bedrock for Amazon Titan Image Generator G1 v2 in the same AWS Region where you will deploy this solution.
-3. Download CloudFormation script from [aws-samples Github](https://github.com/aws-samples/aws-serverless-image-editing-tool-using-bedrock) page.
+3. Download CloudFormation script from [aws-samples Github](https://github.com/aws-samples/aws-serverless-image-editing-tool-using-bedrock/blob/main/CFN-APIGateway%2BCognito%2BLambda.yaml) page.
 
-### Resources created after running the CloudFormation template
+## Resources created after running the CloudFormation template
 
 When you run the [AWS CloudFormation](https://aws.amazon.com/cloudformation) template, the following resources will be deployed.
 
@@ -49,11 +49,11 @@ After successfully deploying the CloudFormation template, copy the following fro
 
 ![cfn-output](https://github.com/user-attachments/assets/6de5cfb7-c044-4ea8-8748-e6908cfc33df)
 
-### Resources deployed manually
+## Resources deployed manually
 
 You will have to manually deploy the Amplify application using the frontend code found on GitHub.
 
-  1. Download the frontend code from the [GitHub repo](https://github.com/aws-samples/aws-serverless-image-editing-tool-using-bedrock).
+  1. Download the frontend code from the [GitHub repo](https://github.com/aws-samples/aws-serverless-image-editing-tool-using-bedrock/blob/main/AWS-Amplify-Code.zip).
   2. Unzip the downloaded file and navigate to the folder.
   3. In the js folder, find the config.js file and replace the values of XYZ for userPoolId, userPoolClientId, and invokeUrl with the values provided in the [Output](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) tab after deploying the CloudFormation template. Set the region value based on the Region where you're deploying the solution.
 
@@ -89,27 +89,27 @@ window._config = {
 
   7.  Return to AWS Amplify page and use the domain it auto generated to access the application.
 
-### Amazon Cognito for user authentication
+## Amazon Cognito for user authentication
 
 [Amazon Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html) is an identity platform that you can use to authenticate and authorize users. We use Cognito in our solution to verify the user before they can use the image editing application.
 
 Upon accessing the Image Editing Tool URL, you will be prompted to sign in with a previously created test user. For first-time sign-ins, users will be asked to update their password. After this process, the user's credentials are validated against the records stored in the user pool. If the credentials match, Amazon Cognito will issue a JSON Web Token (JWT). In the **API payload to be sent** section of the page, you will notice that the **Authorization** field has been updated with the newly issued JWT.
 
-### Lambda for backend code and Amazon Bedrock for generative AI function
+## Lambda for backend code and Amazon Bedrock for generative AI function
 
 The backend code is hosted on Lambda and launched by user requests routed through API Gateway. The Lambda function will process the request payload and forward it to Amazon Bedrock. The reply from Amazon Bedrock will follow the same route as the initial request.
 
-### Amazon API Gateway for API management
+## Amazon API Gateway for API management
 
 API Gateway streamlines API management, allowing developers to deploy, maintain, monitor, secure, and scale their APIs effortlessly. In our use case, API Gateway serves as the orchestrator for the application logic and provides throttling to manage the load to the backend. Without API Gateway, we would need to use the JavaScript SDK in the frontend to interact directly with the Amazon Bedrock API, bringing more work to the frontend.
 
-### Amplify for front-end code
+## Amplify for front-end code
 
 Amplify is a service that offers a development platform for building secure, scalable mobile and web applications. It allows developers to focus on their code rather than to worry about the underlying infrastructure. Amplify also integrates with many Git providers. For this solution, we manually upload our frontend code using the method outlined in the **Resources deployed manually** section.
 
-### Image editing tool walkthrough
+## Image editing tool walkthrough
 
-Navigate to the URL provided after creating the application in Amplify and sign in.
+Navigate to the URL provided after creating the application in Amplify and sign in. At first login attempt you will be asked to reset your password.   
 
 ![App-1](https://github.com/user-attachments/assets/61661071-7003-4b9e-8325-219442aeeb1c)
 
