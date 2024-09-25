@@ -12,7 +12,7 @@ This blog post will introduce a solution that simplifies the deployment of a web
 
 Now let’s go through the solution and how the AWS services are connected and used for this application. The following diagram provides an overview and highlight the key components. The architecture utilizes Cognito for user authentication and Amplify as the hosting platform for our front-end application. A combination of API Gateway and Lambda function is used for our back-end services and Amazon Bedrock integrates with the FM model, enabling users to edit the image using prompts.
 
-\[Screenshot\]
+<img width="2225" alt="SolutionOverivew" src="https://github.com/user-attachments/assets/dcf76a35-3e20-4c1c-816e-8a5b2f7dd1bd">
 
 ## Prerequisites
 
@@ -47,7 +47,7 @@ After successfully deploying the CloudFormation template, copy the following fro
 - userPoolClientId
 - invokeUrl
 
-\[Screenshot\]
+![cfn-output](https://github.com/user-attachments/assets/6de5cfb7-c044-4ea8-8748-e6908cfc33df)
 
 ### Resources deployed manually
 
@@ -59,7 +59,7 @@ You will have to manually deploy the Amplify application using the frontend code
 
 Example config.js file:
 
-:::code{showCopyAction=true showLineNumbers=true language=python}
+```
 window._config = {
     cognito: {
         userPoolId: 'XYZ', // e.g. us-west-2_uXboG5pAb
@@ -70,22 +70,22 @@ window._config = {
         invokeUrl: 'XYZ' // e.g. https://rc7nyt4tql.execute-api.us-west-2.amazonaws.com/prod,
     }
 };
-:::
+```
 
-\[Screenshot\]
+![ExtractUpdateConfigFile](https://github.com/user-attachments/assets/3fa5740e-4b1e-4e57-a29f-040f3fc2f7d7)
 
    4. Select all the files and compress them as shown in the following image. Make sure you zip the contents and not the top-level folder. For example, if your build output generates a folder named AWS-Amplify-Code, navigate into that folder and select all the contents, and then zip the contents as shown in the following image.
 
-\[Screenshot\]
+![CreateNewZipFile](https://github.com/user-attachments/assets/035956dd-1b64-429d-99f5-a5cd320b32eb)
 
  5. Use the new .zip file to manually [deploy](https://docs.aws.amazon.com/amplify/latest/userguide/manual-deploys.html) the application in Amplify. Once it is deployed you will receive a domain which you can use in later steps to access the application.
 
-\[Screenshot\]
+![AWSAmplifySearchCreateApp](https://github.com/user-attachments/assets/4ce9a885-7c27-4fc4-a01c-3469ae8b4e3a)
 
    6. [Create](https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html#creating-a-new-user-using-the-console) a test user in the Amazon Cognito user pool.  
         **Note:** An email address is required for this user because you will need to mark email address as verified.
 
-\[Screenshot\]
+![Cognito-Create-User](https://github.com/user-attachments/assets/072d047c-ece3-4eb4-927d-92ab81912e75)
 
   7.  Return to AWS Amplify page and use the domain it auto generated to access the application.
 
@@ -111,7 +111,7 @@ Amplify is a service that offers a development platform for building secure, sca
 
 Navigate to the URL provided after creating the application in Amplify and sign in.
 
-\[Screenshot\]
+![App-1](https://github.com/user-attachments/assets/61661071-7003-4b9e-8325-219442aeeb1c)
 
 As you follow the steps for this tool, you will notice the **API Payload to be Sent** section on the right side updating dynamically, reflecting the details mentioned in the corresponding steps that follow.
 
@@ -124,7 +124,7 @@ As you follow the steps for this tool, you will notice the **API Payload to be S
 
 **Note:** Amazon Titan Image Generator G1 model requires the inputs to be in base64 encoding.
 
-\[Screenshot\]
+![App-2](https://github.com/user-attachments/assets/20b91600-edeb-4439-afbe-ad0e625e034e)
 
 **Step 2: Write a prompt and set your options**
 
@@ -140,13 +140,13 @@ The Amazon Bedrock API will generate two image outputs in base64 format, which w
 
 The following figure shows the results of our test. You can download the results or provide an updated prompt to get a new output.
 
-\[Screenshot\]
+![App-3](https://github.com/user-attachments/assets/abda05ad-c83b-4fdb-895b-63b560354e6d)
 
 ## Testing and troubleshooting
 
 When you initiate the Send to API action, the system performs a validation check. If any required information is missing or incorrect, it will display an error notification. For instance, if you attempt to send an image to the API without providing a prompt, an error message will appear on the right side of the interface, alerting you to the missing input, as shown in the following figure.
 
-\[Screenshot\]
+![App-4](https://github.com/user-attachments/assets/a1293588-48ec-410e-8a20-58e861b86293)
 
 ## Clean up
 
