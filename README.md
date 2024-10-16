@@ -1,70 +1,69 @@
 # Deploy a serverless web application to edit images using Amazon Bedrock
 
-[Generative AI](https://aws.amazon.com/generative-ai/) adoption among various industries is revolutionizing all different types of applications, including image editing. Image editing is used in various sectors, such as graphic designing, marketing, and social media. Users rely on specialized tools for editing images. Building a custom solution for this task can be complex. However, by using various AWS services, you can quickly deploy a [serverless](https://aws.amazon.com/serverless/) solution to edit images. This approach can give your teams access to image editing foundation models (FMs) using [Amazon Bedrock](https://aws.amazon.com/bedrock/).
+[Generative AI](https://aws.amazon.com/generative-ai/) adoption among various industries is revolutionizing different types of applications, including image editing. Image editing is used in various sectors, such as graphic designing, marketing, and social media. Users rely on specialized tools for editing images. Building a custom solution for this task can be complex. However, by using various AWS services, you can quickly deploy a [serverless](https://aws.amazon.com/serverless/) solution to edit images. This approach can give your teams access to image editing foundation models (FMs) using [Amazon Bedrock](https://aws.amazon.com/bedrock/).
 
-Amazon Bedrock is a fully managed service that makes FMs from leading AI startups and Amazon available through an API, so you can choose from a wide range of FMs to find the model that’s best suited for your use case. Amazon Bedrock is serverless, so you can get started quickly, privately customize FMs with your own data, and integrate and deploy them into your applications using AWS tools without having to manage any infrastructure.
+Amazon Bedrock is a fully managed service that makes FMs from leading AI startups and Amazon available through an API, so you can choose from a wide range of FMs to find the model that’s best suited for your use case. Amazon Bedrock is serverless, so you can get started quickly, privately customize FMs with your own data, and integrate and deploy them into your applications using AWS tools without having to manage infrastructure.
 
-[Amazon Titan Image Generator G1](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html) is an AI FM available with Amazon Bedrock that allows you to generate an image from text, or upload and edit your own image. Some of the key features we focus on include [inpainting](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html#titanimage-features:~:text=an%20image%20mask.-,Inpainting,-%E2%80%93%20Uses%20an%20image) and [outpainting](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html#titanimage-features:~:text=with%20background%20pixels.-,Outpainting,-%E2%80%93%20Uses%20an%20image). As of the writing of this blog post, Amazon Titan Image Generator G1 comes in two versions; for this blog post we will use version 2 of the model.
+[Amazon Titan Image Generator G1](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html) is an AI FM available with Amazon Bedrock that allows you to generate an image from text, or upload and edit your own image. Some of the key features we focus on include [inpainting](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html#titanimage-features:~:text=an%20image%20mask.-,Inpainting,-%E2%80%93%20Uses%20an%20image) and [outpainting](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html#titanimage-features:~:text=with%20background%20pixels.-,Outpainting,-%E2%80%93%20Uses%20an%20image).
 
-This blog post will introduce a solution that simplifies the deployment of a web application for image editing using AWS serverless services. We will use [AWS Amplify](https://aws.amazon.com/amplify/), [Amazon Cognito](https://aws.amazon.com/cognito/), [Amazon API Gateway](https://aws.amazon.com/api-gateway/), [AWS Lambda](https://aws.amazon.com/lambda/), and [Amazon Bedrock](https://aws.amazon.com/bedrock/) with the [Amazon Titan Image Generator G1](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html) model to build an application that can be used to edit images using prompts. We will cover the inner workings of the solution to help you understand the function of each service and how they are connected to give you a complete solution.
+This post introduces a solution that simplifies the deployment of a web application for image editing using AWS serverless services. We use [AWS Amplify](https://aws.amazon.com/amplify/), [Amazon Cognito](https://aws.amazon.com/cognito/), [Amazon API Gateway](https://aws.amazon.com/api-gateway/), [AWS Lambda](https://aws.amazon.com/lambda/), and Amazon Bedrock with the Amazon Titan Image Generator G1 model to build an application to edit images using prompts. We cover the inner workings of the solution to help you understand the function of each service and how they are connected to give you a complete solution. At the time of writing this post, Amazon Titan Image Generator G1 comes in two versions; for this post, we use version 2.
 
 ## Solution overview
 
-Now let’s go through the solution and how the AWS services are connected and used for this application. The following diagram provides an overview and highlight the key components. The architecture utilizes Cognito for user authentication and Amplify as the hosting platform for our front-end application. A combination of API Gateway and Lambda function is used for our back-end services and Amazon Bedrock integrates with the FM model, enabling users to edit the image using prompts.
+The following diagram provides an overview and highlights the key components. The architecture uses Amazon Cognito for user authentication and Amplify as the hosting environment for our frontend application. A combination of API Gateway and a Lambda function is used for our backend services, and Amazon Bedrock integrates with the FM model, enabling users to edit the image using prompts.
 
-<img width="2225" alt="SolutionOverivew" src="https://github.com/user-attachments/assets/dcf76a35-3e20-4c1c-816e-8a5b2f7dd1bd">
+<img width="2225" alt="1 ML-16469-Solution-Overview" src="https://github.com/user-attachments/assets/2a85503b-293a-4e65-b561-4f13520c69b4">
 
 ## Prerequisites
 
-You must have the following in place to complete the solution in this post.
+You must have the following in place to complete the solution in this post:
 
-1. An [AWS account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fportal.aws.amazon.com%2Fbilling%2Fsignup%2Fresume&client_id=signup)
-2. Enable foundation model [access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) in Amazon Bedrock for Amazon Titan Image Generator G1 v2 in the same AWS Region where you will deploy this solution.
-3. Download CloudFormation script from [aws-samples Github](https://github.com/aws-samples/aws-serverless-image-editing-tool-using-bedrock/blob/main/CFN-APIGateway%2BCognito%2BLambda.yaml) page.
+*   An [AWS account](https://signin.aws.amazon.com/signin?redirect_uri=https%3A%2F%2Fportal.aws.amazon.com%2Fbilling%2Fsignup%2Fresume&client_id=signup)
+*   FM [access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) in Amazon Bedrock for Amazon Titan Image Generator G1 v2 in the same AWS Region where you will deploy this solution
+*   The accompanying [AWS CloudFormation](http://aws.amazon.com/cloudformation) template downloaded from the [aws-samples GitHub repo](https://github.com/aws-samples/aws-serverless-image-editing-tool-using-bedrock).
 
-## Resources created after running the CloudFormation template
+## Deploy solution resources using AWS CloudFormation
 
-When you run the [AWS CloudFormation](https://aws.amazon.com/cloudformation) template, the following resources will be deployed.
+When you run the [AWS CloudFormation](https://aws.amazon.com/cloudformation) template, the following resources are deployed:
 
-- Amazon Cognito
-  - [User pool](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html): CognitoUserPoolforImageEditApp
-  - [App client](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-client-apps.html): ImageEditApp
-- Lambda
-  - [Function](https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html): &lt;Stack name&gt;-ImageEditBackend-&lt;auto-generated&gt;
-- [AWS Identity Access Management (IAM)](https://aws.amazon.com/iam/)
-  - [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html): &lt;Stack name&gt;-ImageEditBackendRole-&lt;auto-generated&gt;
-  - [IAM inline policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html#inline-policies): AmazonBedrockAccess–Allows Lambda to invoke Amazon Bedrock foundation model amazon.titan-image-generator-v2:0
-- Amazon API Gateway
-  - [Rest API](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-develop.html): ImageEditingAppBackendAPI
-  - [Methods](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-method-settings.html):
-    - OPTIONS – Added header mapping for [CORS](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html)
-    - POST – Lambda integration
-  - [Authorization](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-enable-cognito-user-pool.html): Through Amazon Cognito using CognitoAuthorizer
+*   Amazon Cognito resources:
+    *   [User pool](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-identity-pools.html): CognitoUserPoolforImageEditApp
+    *   [App client](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-client-apps.html): ImageEditApp
+*   Lambda resources:
+    *   [Function](https://docs.aws.amazon.com/lambda/latest/dg/getting-started.html): <Stack name>-ImageEditBackend-<auto-generated>
+*   [AWS Identity Access Management](https://aws.amazon.com/iam/) (IAM) resources:
+    *   [IAM role](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html): <Stack name>-ImageEditBackendRole-<auto-generated>
+    *   [IAM inline policy](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_managed-vs-inline.html#inline-policies): AmazonBedrockAccess (this policy allows Lambda to invoke Amazon Bedrock FM amazon.titan-image-generator-v2:0)
+*   API Gateway resources:
+    *   [Rest API](https://docs.aws.amazon.com/apigateway/latest/developerguide/rest-api-develop.html): ImageEditingAppBackendAPI
+    *   [Methods](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-method-settings.html):
+        *   OPTIONS – Added header mapping for [CORS](https://docs.aws.amazon.com/apigateway/latest/developerguide/how-to-cors.html)
+        *   POST – Lambda integration
+    *   [Authorization](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-enable-cognito-user-pool.html): Through Amazon Cognito using CognitoAuthorizer
 
-After successfully deploying the CloudFormation template, copy the following from the output section to be used during the deployment of Amplify. An example is shown in the following screenshot.
+After you deploy the CloudFormation template, copy the following from the **Outputs** tab to be used during the deployment of Amplify:
 
-- userPoolId
-- userPoolClientId
-- invokeUrl
+*   userPoolId
+*   userPoolClientId
+*   invokeUrl
 
-![cfn-output](https://github.com/user-attachments/assets/6de5cfb7-c044-4ea8-8748-e6908cfc33df)
+![2 ML-16469-cfn-output](https://github.com/user-attachments/assets/a9274d2d-d2ee-435b-92bb-dddb6254d663)
 
-## Resources deployed manually
+## Deploy the Amplify application
 
-You will have to manually deploy the Amplify application using the frontend code found on GitHub.
+You have to manually deploy the Amplify application using the frontend code found on GitHub. Complete the following steps:
 
-  1. Download the frontend code from the [GitHub repo](https://github.com/aws-samples/aws-serverless-image-editing-tool-using-bedrock/blob/main/AWS-Amplify-Code.zip).
-  2. Unzip the downloaded file and navigate to the folder.
-  3. In the js folder, find the config.js file and replace the values of XYZ for userPoolId, userPoolClientId, and invokeUrl with the values provided in the [Output](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/outputs-section-structure.html) tab after deploying the CloudFormation template. Set the region value based on the Region where you're deploying the solution.
+1.  Download the frontend code from the [GitHub repo](https://github.com/aws-samples/aws-serverless-image-editing-tool-using-bedrock).
+2.  Unzip the downloaded file and navigate to the folder.
+3.  In the js folder, find the config.js file and replace the values of XYZ for userPoolId, userPoolClientId, and invokeUrl with the values you collected from the CloudFormation stack outputs. Set the region value based on the Region where you’re deploying the solution.
 
-Example config.js file:
-
+The following is an example config.js file:
 ```
 window._config = {
     cognito: {
         userPoolId: 'XYZ', // e.g. us-west-2_uXboG5pAb
         userPoolClientId: 'XYZ', // e.g. 25ddkmj4v6hfsfvruhpfi7n4hv
-        region: 'XYZ' // e.g. us-west-2
+        region: 'XYZ// e.g. us-west-2
     },
     api: {
         invokeUrl: 'XYZ' // e.g. https://rc7nyt4tql.execute-api.us-west-2.amazonaws.com/prod,
@@ -72,109 +71,120 @@ window._config = {
 };
 ```
 
-![ExtractUpdateConfigFile](https://github.com/user-attachments/assets/3fa5740e-4b1e-4e57-a29f-040f3fc2f7d7)
+![3 ML-16469-ExtractUpdateConfigFile-Compressed](https://github.com/user-attachments/assets/8e49e52e-f7ca-4800-8d25-04a81b6ba425)
 
-   4. Select all the files and compress them as shown in the following image. Make sure you zip the contents and not the top-level folder. For example, if your build output generates a folder named AWS-Amplify-Code, navigate into that folder and select all the contents, and then zip the contents as shown in the following image.
+4.  Select all the files and compress them as shown in the following screenshot.
 
-![CreateNewZipFile](https://github.com/user-attachments/assets/035956dd-1b64-429d-99f5-a5cd320b32eb)
+Make sure you zip the contents and not the top-level folder. For example, if your build output generates a folder named AWS-Amplify-Code, navigate into that folder and select all the contents, and then zip the contents.
 
- 5. Use the new .zip file to manually [deploy](https://docs.aws.amazon.com/amplify/latest/userguide/manual-deploys.html) the application in Amplify. Once it is deployed you will receive a domain which you can use in later steps to access the application.
+![4 ML-16469-CreateNewZipFile](https://github.com/user-attachments/assets/f68df26b-305b-442a-87ea-1298591354a1)
 
-![AWSAmplifySearchCreateApp](https://github.com/user-attachments/assets/4ce9a885-7c27-4fc4-a01c-3469ae8b4e3a)
+5.  Use the new .zip file to manually [deploy](https://docs.aws.amazon.com/amplify/latest/userguide/manual-deploys.html) the application in Amplify.
 
-   6. [Create](https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html#creating-a-new-user-using-the-console) a test user in the Amazon Cognito user pool.  
-        **Note:** An email address is required for this user because you will need to mark email address as verified.
+After it’s deployed, you will receive a domain that you can use in later steps to access the application.
 
-![Cognito-Create-User](https://github.com/user-attachments/assets/072d047c-ece3-4eb4-927d-92ab81912e75)
+![5 ML-16469-AWSAmplifySearchCreateApp](https://github.com/user-attachments/assets/c70877b5-c277-497e-8d88-95490391021f)
 
-  7.  Return to AWS Amplify page and use the domain it auto generated to access the application.
+6.  [Create](https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html#creating-a-new-user-using-the-console) a test user in the Amazon Cognito user pool.
 
-## Amazon Cognito for user authentication
+An email address is required for this user because you will need to mark the email address as verified.
 
-[Amazon Cognito](https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html) is an identity platform that you can use to authenticate and authorize users. We use Cognito in our solution to verify the user before they can use the image editing application.
+![6 ML-16469-Cognito-Create-User](https://github.com/user-attachments/assets/a5391841-7ca2-4312-8b4c-3fcc22ea1c0e)
 
-Upon accessing the Image Editing Tool URL, you will be prompted to sign in with a previously created test user. For first-time sign-ins, users will be asked to update their password. After this process, the user's credentials are validated against the records stored in the user pool. If the credentials match, Amazon Cognito will issue a JSON Web Token (JWT). In the **API payload to be sent** section of the page, you will notice that the **Authorization** field has been updated with the newly issued JWT.
+7.  Return to the Amplify page and use the domain it automatically generated to access the application.
 
-## Lambda for backend code and Amazon Bedrock for generative AI function
+## Use Amazon Cognito for user authentication
 
-The backend code is hosted on Lambda and launched by user requests routed through API Gateway. The Lambda function will process the request payload and forward it to Amazon Bedrock. The reply from Amazon Bedrock will follow the same route as the initial request.
+Amazon Cognito is an identity platform that you can use to authenticate and authorize users. We use Amazon Cognito in our solution to verify the user before they can use the image editing application.
 
-## Amazon API Gateway for API management
+Upon accessing the Image Editing Tool URL, you will be prompted to sign in with a previously created test user. For first-time sign-ins, users will be asked to update their password. After this process, the user’s credentials are validated against the records stored in the user pool. If the credentials match, Amazon Cognito will issue a JSON Web Token (JWT). In the **API payload to be sent** section of the page, you will notice that the **Authorization** field has been updated with the newly issued JWT.
 
-API Gateway streamlines API management, allowing developers to deploy, maintain, monitor, secure, and scale their APIs effortlessly. In our use case, API Gateway serves as the orchestrator for the application logic and provides throttling to manage the load to the backend. Without API Gateway, we would need to use the JavaScript SDK in the frontend to interact directly with the Amazon Bedrock API, bringing more work to the frontend.
+## Use Lambda for backend code and Amazon Bedrock for generative AI function
 
-## Amplify for front-end code
+The backend code is hosted on Lambda, and launched by user requests routed through API Gateway. The Lambda function process the request payload and forwards it to Amazon Bedrock. The reply from Amazon Bedrock follows the same route as the initial request.
 
-Amplify is a service that offers a development platform for building secure, scalable mobile and web applications. It allows developers to focus on their code rather than to worry about the underlying infrastructure. Amplify also integrates with many Git providers. For this solution, we manually upload our frontend code using the method outlined in the **Resources deployed manually** section.
+## Use API Gateway for API management
+
+API Gateway streamlines API management, allowing developers to deploy, maintain, monitor, secure, and scale their APIs effortlessly. In our use case, API Gateway serves as the orchestrator for the application logic and provides throttling to manage the load to the backend. Without API Gateway, you would need to use the JavaScript SDK in the frontend to interact directly with the Amazon Bedrock API, bringing more work to the frontend.
+
+## Use Amplify for frontend code
+
+Amplify offers a development environment for building secure, scalable mobile and web applications. It allows developers to focus on their code rather than worrying about the underlying infrastructure. Amplify also integrates with many Git providers. For this solution, we manually upload our frontend code using the method outlined earlier in this post.
 
 ## Image editing tool walkthrough
 
-Navigate to the URL provided after creating the application in Amplify and sign in. At first login attempt you will be asked to reset your password.   
+Navigate to the URL provided after you created the application in Amplify and sign in. At first login attempt, you’ll be asked to reset your password.
 
-![App-1](https://github.com/user-attachments/assets/61661071-7003-4b9e-8325-219442aeeb1c)
+![7 ML-16469-Login](https://github.com/user-attachments/assets/65710c79-d3f7-43f1-9b2f-a1be331911e4)
 
 As you follow the steps for this tool, you will notice the **API Payload to be Sent** section on the right side updating dynamically, reflecting the details mentioned in the corresponding steps that follow.
 
-**Step 1: Create a mask on your image**
+### Step 1: Create a mask on your image
 
-1. Choose a file (JPEG, JPG, or PNG).
-2. After the image is loaded, the frontend converts the file into base64 and base_image value is updated.
-3. As you select a portion of the image you want to edit, a mask will be created, and mask value is updated with a new base64 value. You can also use the stroke size option to adjust the area you are selecting.
-4. You now have the original image and the mask image encoded in base64.
+To create a mask on your image, choose a file (JPEG, JPG, or PNG).
 
-**Note:** Amazon Titan Image Generator G1 model requires the inputs to be in base64 encoding.
+After the image is loaded, the frontend converts the file into base64 and base\_image value is updated.
 
-![App-2](https://github.com/user-attachments/assets/20b91600-edeb-4439-afbe-ad0e625e034e)
+As you select a portion of the image you want to edit, a mask will be created, and mask value is updated with a new base64 value. You can also use the stroke size option to adjust the area you are selecting.
 
-**Step 2: Write a prompt and set your options**
+You now have the original image and the mask image encoded in base64. (The Amazon Titan Image Generator G1 model requires the inputs to be in base64 encoding.)
 
-1. Write a prompt that describes what you want to do with the image. In the preceding figure, we enter Make the driveway clear and empty. and this is reflected in the prompt on the right.
-2. Image editing options – inpainting and outpainting: mode is updated depending on your selection.
-   - Use inpainting to remove masked elements and replace them with background pixels.
-   - Use outpainting to extend the pixels of the masked image to the image boundaries.
-3. Choose **Send to API** button to send the payload to the API gateway. This action will invoke the Lambda function, which validates the received payload. If the payload is validated successfully, the Lambda function proceeds to invoke the Amazon Bedrock API for further processing.
+![8 ML-16469-ChooseFileandCreateMask](https://github.com/user-attachments/assets/2cfa6b78-58b1-41c4-8943-958cb7300cac)
 
-The Amazon Bedrock API will generate two image outputs in base64 format, which will be transmitted back to the frontend application and rendered as visual images.
+### Step 2: Write a prompt and set your options
 
-**Step 3: View and download the result**
+Write a prompt that describes what you want to do with the image. For this example, we enter Make the driveway clear and empty. This is reflected in the prompt on the right.
 
-The following figure shows the results of our test. You can download the results or provide an updated prompt to get a new output.
+You can choose from the following image editing options: inpainting and outpainting. The value for mode is updated depending on your selection.
 
-![App-3](https://github.com/user-attachments/assets/abda05ad-c83b-4fdb-895b-63b560354e6d)
+*   Use inpainting to remove masked elements and replace them with background pixels
+*   Use outpainting to extend the pixels of the masked image to the image boundaries
+
+Choose **Send to API** to send the payload to the API gateway. This action invokes the Lambda function, which validates the received payload. If the payload is validated successfully, the Lambda function proceeds to invoke the Amazon Bedrock API for further processing.
+
+The Amazon Bedrock API generates two image outputs in base64 format, which are transmitted back to the frontend application and rendered as visual images.
+
+![9 ML-16469-Prompt](https://github.com/user-attachments/assets/1990078a-6056-46a5-9c78-d2a5a2cb2231)
+
+### Step 3: View and download the result
+
+The following screenshot shows the results of our test. You can download the results or provide an updated prompt to get a new output.
+
+![10 ML-16469-download](https://github.com/user-attachments/assets/f304ad85-ca8a-4124-9be2-9e2feb5b4b77)
 
 ## Testing and troubleshooting
 
-When you initiate the Send to API action, the system performs a validation check. If any required information is missing or incorrect, it will display an error notification. For instance, if you attempt to send an image to the API without providing a prompt, an error message will appear on the right side of the interface, alerting you to the missing input, as shown in the following figure.
+When you initiate the **Send to API** action, the system performs a validation check. If required information is missing or incorrect, it will display an error notification. For instance, if you attempt to send an image to the API without providing a prompt, an error message will appear on the right side of the interface, alerting you to the missing input, as shown in the following screenshot.
 
-![App-4](https://github.com/user-attachments/assets/a1293588-48ec-410e-8a20-58e861b86293)
+![11 ML-16469-App-error](https://github.com/user-attachments/assets/80db4689-f9f6-49c0-ba23-a64c8cac47bb)
 
 ## Clean up
 
-If you decide to discontinue using the Image Editing Tool, you can follow these steps to remove the Image Editing Tool, its associated resources deployed using CloudFormation, and the AWS Amplify deployment:
+If you decide to discontinue using the Image Editing Tool, you can follow these steps to remove the Image Editing Tool, its associated resources deployed using AWS CloudFormation, and the Amplify deployment:
 
-1. Navigate to the AWS CloudFormation console.
-2. Locate the stack you created during the deployment process (you assigned a name to it).
-3. Select the stack and choose **Delete**.
-4. Follow these [instructions](https://aws.amazon.com/getting-started/hands-on/build-web-app-s3-lambda-api-gateway-dynamodb/module-six/) to delete the Amplify application and its resources by selecting the name of the application you used during deployment.
+1.  Delete the CloudFormation stack:
+    1.  On the AWS CloudFormation console, choose **Stacks** in the navigation pane.
+    2.  Locate the stack you created during the deployment process (you assigned a name to it).
+    3.  Select the stack and choose **Delete**.
+2.  Delete the Amplify application and its resources. For instructions, refer to [Clean Up Resources](https://aws.amazon.com/getting-started/hands-on/build-web-app-s3-lambda-api-gateway-dynamodb/module-six/).
 
 ## Conclusion
 
-In this blog post, we explored a sample solution that you can use to deploy an image editing application by using AWS Serverless services and generative AI services. We used Amazon Bedrock and an Amazon Titan FM that allows you to edit images by using prompts. By adopting this solution, you gain the advantage of using AWS managed services, eliminating the need for maintaining any underlying infrastructure. Get started today by deploying this sample solution.
+In this post, we explored a sample solution that you can use to deploy an image editing application by using AWS serverless services and generative AI services. We used Amazon Bedrock and an Amazon Titan FM that allows you to edit images by using prompts. By adopting this solution, you gain the advantage of using AWS managed services, so you don’t have to maintain the underlying infrastructure. Get started today by deploying this sample solution.
 
 ## Additional resources
 
 To learn more about Amazon Bedrock, see the following resources:
 
-- [Amazon Bedrock Workshop](https://github.com/aws-samples/amazon-bedrock-workshop)
-- [Amazon Bedrock User Guide](https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html)
-- [Amazon Bedrock with Amazon Titan Image Generator G1](https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-image.html)
-- [Amazon Bedrock InvokeModel API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html)
-- [Using generative AI on AWS for diverse content types Workshop](https://catalog.us-east-1.prod.workshops.aws/genai-on-aws/)
+*   [GitHub repo: Amazon Bedrock Workshop](https://github.com/aws-samples/amazon-bedrock-workshop)
+*   [Amazon Bedrock User Guide](https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-bedrock.html)
+*   [Amazon Bedrock InvokeModel API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModel.html)
+*   [Workshop: Using generative AI on AWS for diverse content types](https://catalog.us-east-1.prod.workshops.aws/genai-on-aws/)
 
-To learn more about the Titan Image Generator G1 model, see the following resources:
+To learn more about the Amazon Titan Image Generator G1 model, see the following resources:
 
-- [Amazon Titan Image Generator G1 model](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html)
-- [Amazon Titan Image Generator Demo](https://www.youtube.com/watch?v=v2akUur4xho)
+*   [Amazon Titan Image Generator G1 models](https://docs.aws.amazon.com/bedrock/latest/userguide/titan-image-models.html)
+*   [Amazon Titan Image Generator Demo](https://www.youtube.com/watch?v=v2akUur4xho)
 
 ## Security
 
