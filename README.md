@@ -1,5 +1,5 @@
 > [!NOTE]
-> The content presented here serves as an illustrative example intended solely for educational objectives and should not be implemented in a live production environment without proper modifications and rigorous testing.
+> The content presented here serves as an example intended solely for educational objectives and should not be implemented in a live production environment without proper modifications and rigorous testing.
 
 # Deploy a serverless web application to edit images using Amazon Bedrock
 
