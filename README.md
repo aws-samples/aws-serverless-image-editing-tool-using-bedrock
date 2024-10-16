@@ -1,3 +1,6 @@
+> [!NOTE]
+> The content presented here serves as an illustrative example intended solely for educational objectives and should not be implemented in a live production environment without proper modifications and rigorous testing.
+
 # Deploy a serverless web application to edit images using Amazon Bedrock
 
 [Generative AI](https://aws.amazon.com/generative-ai/) adoption among various industries is revolutionizing different types of applications, including image editing. Image editing is used in various sectors, such as graphic designing, marketing, and social media. Users rely on specialized tools for editing images. Building a custom solution for this task can be complex. However, by using various AWS services, you can quickly deploy a [serverless](https://aws.amazon.com/serverless/) solution to edit images. This approach can give your teams access to image editing foundation models (FMs) using [Amazon Bedrock](https://aws.amazon.com/bedrock/).
